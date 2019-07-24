@@ -47,7 +47,6 @@ const getDescendantsWords = (elem, startingPoint, includeStartingPoint) => {
     return t ? [t] : [];
   }
 
-  //const children = getChildren(elem, startingPoint, includeStartingPoint);
   const children = getChildren(elem, startingPoint, includeStartingPoint);
 
   for (let i = 0; i < children.length; i++) {
@@ -76,27 +75,30 @@ const selectTargetChildren = (elem, startingPoint, includeStartingPoint) => {
   let foundStartingPoint = false;
   for (let i = elem.childNodes.length - 1; i >= 0; i--) {
     const child = elem.childNodes[i];
+
+    const toTraverse = shouldTraverse(child);
     if (areAllTextNodes) {
-      if (!isVirtualTextNode(child)) {
+      if (!toTraverse || !isVirtualTextNode(child)) {
         areAllTextNodes = false;
       }
     }
     if (!foundStartingPoint) {
       foundStartingPoint = child === startingPoint;
     }
-
     if (foundStartingPoint && !includeStartingPoint) {
       break;
     }
-    targetChildren.push({
-      tagName: child.tagName,
-      textContent: child.textContent,
-      children: child.children,
-      childNodes: child.childNodes
-    });
+    if (toTraverse) {
+      targetChildren.push({
+        tagName: child.tagName,
+        textContent: child.textContent,
+        children: child.children,
+        childNodes: child.childNodes
+      });
+    }
 
     if (foundStartingPoint && includeStartingPoint) {
-      if (!isVirtualTextNode(child) || child.textContent.includes(" ")) {
+      if (!toTraverse || !isVirtualTextNode(child) || child.textContent.includes(" ")) {
         break;
       }
     }
@@ -148,7 +150,17 @@ const TEXT_TAGS = ["SPAN"];
 
 const isVirtualTextNode = element => {
   const len = element.children && element.children.length;
-  return len === 0 && TEXT_TAGS.includes(element.tagName);
+  if (len > 0) {
+    return false;
+  }
+  if (!TEXT_TAGS.includes(element.tagName)) {
+    return false;
+  }
+  return true;
+};
+
+const shouldTraverse = element => {
+  return element.textContent !== "/";
 };
 
 export default { runFrom, runAfter };

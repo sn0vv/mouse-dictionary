@@ -102,3 +102,11 @@ test("", () => {
   const start = dom.create(lines.map(a => a.trim()).join("")).querySelector("#start");
   expect(traverse.runFrom(start)).toEqual("def ghi");
 });
+
+test("", () => {
+  const html =
+    '<div><span>aaa</span><span>/</span><span>bbb</span><span>/</span><span>ccc</span><span>/</span><span>ddd</span><span>/</span><span>eee</span><span>/</span><span>fff</span><span>/</span><span>ggg</span><span>/</span><span id="start">hhh</span></div>';
+
+  const start = dom.create(html).querySelector("#start");
+  expect(traverse.runFrom(start)).toEqual("hhh");
+});

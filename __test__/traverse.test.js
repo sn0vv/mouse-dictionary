@@ -148,5 +148,25 @@ test("", () => {
   lines.push("</div>");
 
   const start = dom.create(lines.map(a => a.trim()).join("")).querySelector("#start");
-  expect(traverse.runFrom(start)).toEqual("ggg hhh");
+  expect(traverse.runFrom(start)).toEqual("ggg/hhh");
+});
+
+test("", () => {
+  const lines = [];
+  lines.push("<div>");
+  lines.push("  <span>あ</span>");
+  lines.push("  <span>い</span>");
+  lines.push("  <span>う</span>");
+  lines.push("  <span> </span>");
+  lines.push("  <span>え</span>");
+  lines.push("  <span>お</span>");
+  lines.push('  <span id="start">か</span>');
+  lines.push("  <span>き</span>");
+  lines.push("  <span>く</span>");
+  lines.push("  <span>け</span>");
+  lines.push("  <span> </span>");
+  lines.push("</div>");
+
+  const start = dom.create(lines.map(a => a.trim()).join("")).querySelector("#start");
+  expect(traverse.runFrom(start)).toEqual("かきくけ");
 });

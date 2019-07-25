@@ -4,19 +4,31 @@
  * Licensed under MIT
  */
 
+const TRAVERSE_AFTER = 0;
+const TRAVERSE_FROM = 1;
+const TRAVERSE_BACK = 2;
+
 const runFrom = (elem, maxTraverseWords = 10, maxTraverseLevel = 4) => {
-  return run(elem, true, maxTraverseWords, maxTraverseLevel);
+  return run(elem, TRAVERSE_BACK, maxTraverseWords, maxTraverseLevel);
 };
 
 const runAfter = (elem, maxTraverseWords = 10, maxTraverseLevel = 4) => {
-  return run(elem, false, maxTraverseWords, maxTraverseLevel);
+  return run(elem, TRAVERSE_AFTER, maxTraverseWords, maxTraverseLevel);
 };
 
-const run = (elem, includeStartingPoint, maxTraverseWords = 10, maxTraverseLevel = 4) => {
+const run = (elem, traverseType, maxTraverseWords = 10, maxTraverseLevel = 4) => {
   const resultWords = [];
   let startingPoint = elem;
   let current = startingPoint.parentNode;
-  resultWords.push(...getDescendantsWords(current, startingPoint, includeStartingPoint));
+
+  const code = startingPoint.textContent.charCodeAt(0);
+  const isEnglishLike = (0x20 <= code && code <= 0x7e) || code === 0x2011;
+  if (isEnglishLike) {
+    resultWords.push(...getDescendantsWords(current, startingPoint, traverseType));
+  } else {
+    resultWords.push(...getDescendantsWords(current, startingPoint, TRAVERSE_FROM));
+  }
+
   startingPoint = current;
   current = current.parentNode;
 
@@ -27,28 +39,28 @@ const run = (elem, includeStartingPoint, maxTraverseWords = 10, maxTraverseLevel
     if (!current || current.tagName === "BODY") {
       break;
     }
-    const words = getDescendantsWords(current, startingPoint, false);
+    const words = getDescendantsWords(current, startingPoint, TRAVERSE_AFTER);
     resultWords.push(...words);
     startingPoint = current;
     current = current.parentNode;
   }
   const text = joinWords(resultWords.slice(0, maxTraverseWords));
-  console.warn(text);
   return text;
 };
 
-const getDescendantsWords = (elem, startingPoint, includeStartingPoint) => {
+const getDescendantsWords = (elem, startingPoint, traverseType) => {
   const words = [];
 
   if (!elem.childNodes || elem.childNodes.length === 0) {
     if (elem === startingPoint) {
       return [];
     }
-    const t = elem.textContent.trim();
+    //    const t = elem.textContent.trim();
+    const t = elem.textContent;
     return t ? [t] : [];
   }
 
-  const children = getChildren(elem, startingPoint, includeStartingPoint);
+  const children = getChildren(elem, startingPoint, traverseType);
 
   for (let i = 0; i < children.length; i++) {
     const descendantsWords = getDescendantsWords(children[i], null, false);
@@ -57,53 +69,61 @@ const getDescendantsWords = (elem, startingPoint, includeStartingPoint) => {
   return words;
 };
 
-const getChildren = (elem, startingPoint, includeStartingPoint) => {
-  let resultChildren;
+const getChildren = (elem, startingPoint, traverseType) => {
+  let children;
   if (startingPoint) {
-    const { children, areAllTextNodes } = selectTargetChildren(elem, startingPoint, includeStartingPoint);
-    resultChildren = areAllTextNodes ? processSiblings(children) : children;
+    // const { children, areAllTextNodes } = selectTargetChildren(elem, startingPoint, traverseType);
+    // resultChildren = areAllTextNodes ? processSiblings(children) : children;
+    children = selectTargetChildren(elem, startingPoint, traverseType);
+    // const areAllTextNodes = children.every(isVirtualTextNode);
+    // resultChildren = areAllTextNodes ? processSiblings(children) : children;
   } else {
-    const children = Array.from(elem.childNodes);
-    const areAllTextNodes = children.every(isVirtualTextNode);
-    resultChildren = areAllTextNodes ? processSiblings(children) : children;
+    children = Array.from(elem.childNodes);
+    // const areAllTextNodes = children.every(isVirtualTextNode);
+    // resultChildren = areAllTextNodes ? processSiblings(children) : children;
   }
+
+  const areAllTextNodes = children.every(isVirtualTextNode);
+  const resultChildren = areAllTextNodes ? processSiblings(children) : children;
+
   return resultChildren;
 };
 
-const selectTargetChildren = (elem, startingPoint, includeStartingPoint) => {
+const selectTargetChildren = (elem, startingPoint, traverseType) => {
   const targetChildren = [];
-  let areAllTextNodes = true;
   let foundStartingPoint = false;
   for (let i = elem.childNodes.length - 1; i >= 0; i--) {
     const child = elem.childNodes[i];
     const toTraverse = shouldTraverse(child);
-    if (areAllTextNodes) {
-      if (!toTraverse || !isVirtualTextNode(child)) {
-        areAllTextNodes = false;
-      }
-    }
     if (!foundStartingPoint) {
       foundStartingPoint = child === startingPoint;
     }
-    if (foundStartingPoint && !includeStartingPoint) {
+    if (foundStartingPoint && traverseType === TRAVERSE_AFTER) {
       break;
     }
-    if (toTraverse) {
-      targetChildren.push({
-        tagName: child.tagName,
-        textContent: child.textContent,
-        children: child.children,
-        childNodes: child.childNodes
-      });
+    if (foundStartingPoint && traverseType === TRAVERSE_BACK) {
+      if (!toTraverse) {
+        break;
+      }
     }
-
-    if (foundStartingPoint && includeStartingPoint) {
-      if (!toTraverse || !isVirtualTextNode(child) || child.textContent.includes(" ")) {
+    targetChildren.push({
+      tagName: child.tagName,
+      textContent: child.textContent,
+      children: child.children,
+      childNodes: child.childNodes
+    });
+    if (foundStartingPoint && traverseType === TRAVERSE_FROM) {
+      break;
+    }
+    if (foundStartingPoint && traverseType === TRAVERSE_BACK) {
+      if (!isVirtualTextNode(child) || child.textContent.includes(" ")) {
         break;
       }
     }
   }
-  return { children: targetChildren.reverse(), areAllTextNodes };
+  const MAX_ELEMENTS = 100;
+  return targetChildren.reverse().slice(0, MAX_ELEMENTS);
+  //return { children: targetChildren.reverse().slice(0, MAX_ELEMENTS), areAllTextNodes };
 };
 
 const processSiblings = siblings => {
@@ -143,7 +163,7 @@ const joinWords = words => {
   if (currentWord) {
     newWords.push(currentWord);
   }
-  return newWords.join(" ");
+  return newWords.join(" ").trim();
 };
 
 const TEXT_TAGS = ["SPAN"];

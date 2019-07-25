@@ -33,6 +33,7 @@ const run = (elem, includeStartingPoint, maxTraverseWords = 10, maxTraverseLevel
     current = current.parentNode;
   }
   const text = joinWords(resultWords.slice(0, maxTraverseWords));
+  console.warn(text);
   return text;
 };
 
@@ -75,7 +76,6 @@ const selectTargetChildren = (elem, startingPoint, includeStartingPoint) => {
   let foundStartingPoint = false;
   for (let i = elem.childNodes.length - 1; i >= 0; i--) {
     const child = elem.childNodes[i];
-
     const toTraverse = shouldTraverse(child);
     if (areAllTextNodes) {
       if (!toTraverse || !isVirtualTextNode(child)) {
@@ -147,6 +147,7 @@ const joinWords = words => {
 };
 
 const TEXT_TAGS = ["SPAN"];
+const EXCEPT = new Set(["/", "<", ">"]);
 
 const isVirtualTextNode = element => {
   const len = element.children && element.children.length;
@@ -160,7 +161,7 @@ const isVirtualTextNode = element => {
 };
 
 const shouldTraverse = element => {
-  return element.textContent !== "/";
+  return !EXCEPT.has(element.textContent);
 };
 
 export default { runFrom, runAfter };

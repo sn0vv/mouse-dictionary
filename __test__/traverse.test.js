@@ -104,9 +104,49 @@ test("", () => {
 });
 
 test("", () => {
-  const html =
-    '<div><span>aaa</span><span>/</span><span>bbb</span><span>/</span><span>ccc</span><span>/</span><span>ddd</span><span>/</span><span>eee</span><span>/</span><span>fff</span><span>/</span><span>ggg</span><span>/</span><span id="start">hhh</span></div>';
+  const lines = [];
+  lines.push("<div>");
+  lines.push("  <span>aaa</span>");
+  lines.push("  <span>/</span>");
+  lines.push("  <span>bbb</span>");
+  lines.push("  <span>/</span>");
+  lines.push("  <span>ccc</span>");
+  lines.push("  <span>/</span>");
+  lines.push("  <span>ddd</span>");
+  lines.push("  <span>/</span>");
+  lines.push("  <span>eee</span>");
+  lines.push("  <span>/</span>");
+  lines.push("  <span>fff</span>");
+  lines.push("  <span>/</span>");
+  lines.push("  <span>ggg</span>");
+  lines.push("  <span>/</span>");
+  lines.push('  <span id="start">hhh</span>');
+  lines.push("</div>");
 
-  const start = dom.create(html).querySelector("#start");
+  const start = dom.create(lines.map(a => a.trim()).join("")).querySelector("#start");
   expect(traverse.runFrom(start)).toEqual("hhh");
+});
+
+test("", () => {
+  const lines = [];
+  lines.push("<div>");
+  lines.push("  <span>aaa</span>");
+  lines.push("  <span>/</span>");
+  lines.push("  <span>bbb</span>");
+  lines.push("  <span>/</span>");
+  lines.push("  <span>ccc</span>");
+  lines.push("  <span>/</span>");
+  lines.push("  <span>ddd</span>");
+  lines.push("  <span>/</span>");
+  lines.push("  <span>eee</span>");
+  lines.push("  <span>/</span>");
+  lines.push("  <span>fff</span>");
+  lines.push("  <span>/</span>");
+  lines.push('  <span id="start">ggg</span>');
+  lines.push("  <span>/</span>");
+  lines.push("  <span>hhh</span>");
+  lines.push("</div>");
+
+  const start = dom.create(lines.map(a => a.trim()).join("")).querySelector("#start");
+  expect(traverse.runFrom(start)).toEqual("ggg hhh");
 });

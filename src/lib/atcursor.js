@@ -79,6 +79,9 @@ const isValidTextNode = element => {
   if (element.textContent.includes(" ")) {
     return false;
   }
+  if (element.textContent.length === 0) {
+    return false;
+  }
   return true;
 };
 

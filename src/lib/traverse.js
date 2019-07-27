@@ -55,7 +55,6 @@ const getDescendantsWords = (elem, startingPoint, traverseType) => {
     if (elem === startingPoint) {
       return [];
     }
-    //    const t = elem.textContent.trim();
     const t = elem.textContent;
     return t ? [t] : [];
   }
@@ -72,15 +71,9 @@ const getDescendantsWords = (elem, startingPoint, traverseType) => {
 const getChildren = (elem, startingPoint, traverseType) => {
   let children;
   if (startingPoint) {
-    // const { children, areAllTextNodes } = selectTargetChildren(elem, startingPoint, traverseType);
-    // resultChildren = areAllTextNodes ? processSiblings(children) : children;
     children = selectTargetChildren(elem, startingPoint, traverseType);
-    // const areAllTextNodes = children.every(isVirtualTextNode);
-    // resultChildren = areAllTextNodes ? processSiblings(children) : children;
   } else {
     children = Array.from(elem.childNodes);
-    // const areAllTextNodes = children.every(isVirtualTextNode);
-    // resultChildren = areAllTextNodes ? processSiblings(children) : children;
   }
 
   const areAllTextNodes = children.every(isVirtualTextNode);
@@ -123,7 +116,6 @@ const selectTargetChildren = (elem, startingPoint, traverseType) => {
   }
   const MAX_ELEMENTS = 100;
   return targetChildren.reverse().slice(0, MAX_ELEMENTS);
-  //return { children: targetChildren.reverse().slice(0, MAX_ELEMENTS), areAllTextNodes };
 };
 
 const processSiblings = siblings => {

@@ -29,6 +29,7 @@ export default class Draggable {
     this.selectable = false;
     this.initialize();
     this.mouseMoveFunctions = [this.updateEdgeState, this.move, this.resize];
+    this.tapCount = 0 ;    
   }
 
   initialize() {
@@ -131,10 +132,41 @@ export default class Draggable {
   makeElementDraggable(mainElement) {
     mainElement.addEventListener("dblclick", (e) => this.handleDoubleClick(e));
     mainElement.addEventListener("mousedown", (e) => this.handleMouseDown(e));
+
+    // doubleTap
+    mainElement.addEventListener("touchstart", (e) => this.handleTouchStart(e));
+
     this.mainElementStyle.set("cursor", "move");
     this.current.left = utils.convertToInt(mainElement.style.left);
     this.current.top = utils.convertToInt(mainElement.style.top);
   }
+
+  handleTouchStart(e) {
+    // シングルタップの場合
+    if (!this.tapCount) {
+      // タップ回数を増加
+      this.tapCount++;
+
+      // 350ミリ秒だけ、タップ回数を維持
+      setTimeout(function () {
+        this.tapCount = 0;
+      }, 350);
+
+      // ダブルタップの場合
+    } else {
+      // ビューポートの変更(ズーム)を防止
+      e.preventDefault();
+
+      // ダブルタップイベントの処理内容
+      console.log("ダブルタップに成功しました!!");
+
+      this.jump2();
+      this.finishChanging();
+
+      // タップ回数をリセット
+      this.tapCount = 0;
+    }
+  }    
 
   handleDoubleClick(e) {
     if (this.selectable) {
@@ -161,6 +193,18 @@ export default class Draggable {
     } else if (edgeState & edge.BOTTOM) {
       this.current.top = window.innerHeight - this.mainElement.clientHeight - JUMP_SPACE;
     }
+    this.moveElement(this.current.left, this.current.top);
+  }
+
+  jump2() {
+    this.mainElement.style.height = `${window.innerHeight / 4 * 3}px`;
+    this.current.height = window.innerHeight / 4 * 3;
+    this.mainElement.style.width = `${document.documentElement.clientWidth - JUMP_SPACE * 2}px`;
+    this.current.width = document.documentElement.clientWidth - JUMP_SPACE * 2;
+
+    this.current.left = JUMP_SPACE;
+    this.current.top = window.innerHeight - this.mainElement.clientHeight - JUMP_SPACE;
+
     this.moveElement(this.current.left, this.current.top);
   }
 

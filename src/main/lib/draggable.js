@@ -39,6 +39,7 @@ export default class Draggable {
       resize: () => {},
       finish: () => {},
     };
+    this.touchStatus = "normal";    
   }
 
   initialize() {
@@ -167,10 +168,26 @@ export default class Draggable {
   makeElementDraggable(mainElement) {
     mainElement.addEventListener("dblclick", (e) => this.handleDoubleClick(e));
     mainElement.addEventListener("mousedown", (e) => this.handleMouseDown(e));
-    mainElement.addEventListener("touchstart", (e) => this.handleMouseDown(e));
+    mainElement.addEventListener("touchstart", (e) => this.handleTouchStart(e));    
     this.mainElementStyle.set("cursor", "move");
     this.current.left = utils.convertToInt(mainElement.style.left);
     this.current.top = utils.convertToInt(mainElement.style.top);
+  }
+
+  handleTouchStart(e) {
+    if(e.touches.length > 1)
+    {
+      if(this.touchStatus == "move_resize")
+      {
+        this.touchStatus = "normal";
+      } else {
+        this.touchStatus = "move_resize";
+      }
+    }
+
+    if (this.touchStatus == "move_resize" ) {
+      this.handleMouseDown(e);
+    }      
   }
 
   handleDoubleClick(e) {
